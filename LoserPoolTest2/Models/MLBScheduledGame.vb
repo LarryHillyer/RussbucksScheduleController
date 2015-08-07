@@ -35,6 +35,7 @@ Public Class MLBScheduledGame
     Public Property WinningTeam As String
     Public Property IsHomeTeamWinning As Boolean
     Public Property AreTeamsTied As Boolean
+    Public Property SelectedForCustomSchedule As Boolean
 
 
 End Class

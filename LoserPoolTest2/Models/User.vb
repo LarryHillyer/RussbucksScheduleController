@@ -72,7 +72,7 @@ Namespace LosersPool.Models
         Public Property TimePeriod As String
         Public Property UserPick1 As String
         Public Property GameCode As String
-        Public Property UserPickPostponed As String
+        Public Property UserPickPostponed As Boolean
         Public Property PickIsWinning As Boolean
         Public Property PickIsTied As Boolean
     End Class
