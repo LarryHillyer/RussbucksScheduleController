@@ -43,7 +43,7 @@ def scrape(url, i,errorFlag):
     tomDateGame = datetime.datetime.strftime(nextDay,'%m/%d/%y')
     tomDateFile = datetime.datetime.strftime(nextDay,'%Y-%m-%d')
     url='http://sports.yahoo.com/'+ 'mlb'+'/scoreboard/?date=%(day)s' % {'day':tomDateFile}
-
+    print url
     fileDate=strftime('%Y%m%d',localtime())
     dayOfWeek=strftime('%A',localtime())
 

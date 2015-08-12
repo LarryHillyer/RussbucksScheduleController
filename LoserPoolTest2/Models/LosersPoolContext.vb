@@ -17,7 +17,7 @@ Namespace LosersPool.Models
         Public Property DeletedGames As DbSet(Of DeletedGame)
         Public Property UserPicks As DbSet(Of UserPick)
         Public Sub New()
-            MyBase.New("LosersPool-RussBucks")
+            MyBase.New("RussBucks-LoserPool")
         End Sub
     End Class
 End Namespace

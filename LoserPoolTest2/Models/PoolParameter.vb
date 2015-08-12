@@ -20,5 +20,6 @@ Public Class PoolParameter
     Public Property timePeriodIncrement As String
     Public Property maxTimePeriod As Int32
     Public Property CronJob As String
+    Public Property CustomSchedule As Boolean
 
 End Class

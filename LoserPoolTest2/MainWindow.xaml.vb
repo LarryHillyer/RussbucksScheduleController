@@ -68,34 +68,25 @@ Class MainWindow
 
                     Dim sport = queryCronJob.SelectedSport
                     Dim filename = "\PythonScheduleScrape.bat"
-                    Dim scrapedFilesFolder = "C:\\Users\\Larry\\SkyDrive\\GitHub\\RussBucksScheduleController\\ScrapedFiles\\"
+                    Dim scrapedFilesFolder = queryParameters.scrapedScheduleFilesFolder
 
                     Dim sport1 = ""
                     Dim timePeriod1 = ""
                     If sport = "baseball" Then
                         sport1 = "mlb"
                         timePeriod1 = "day"
+                        filename = "PythonScheduleScrape.bat"
                     ElseIf sport = "football" Then
                         sport1 = "nfl"
                         timePeriod1 = "week"
+                        filename = "NFLPythonScheduleScrape.bat"
                     End If
 
                     Dim scheduleScrapeDate = DateTime.Parse(queryCronJob.SelectedSeasonStartGameDate)
                     Dim seasonStart = scheduleScrapeDate.ToString("MM/dd/yy")
-                    'Dim sp = sS1.IndexOf(" ")
-                    'Dim sS2 = sS1.Substring(0, sp)
-                    'Dim sS3 = sS2.Split("/")
-                    'Dim sS4 = sS3(2).Replace("20", "")
-                    'Dim seasonStart = sS3(0) + "/" + sS3(1) + "/" + sS4
 
                     Dim scheduleScrapeEndDate = DateTime.Parse(queryCronJob.SelectedSeasonEndDate)
                     Dim seasonEnd = scheduleScrapeEndDate.ToString("MM/dd/yy")
-                    'sp = sE1.IndexOf(" ")
-                    'Dim sE2 = sE1.Substring(0, sp)
-                    'Dim sE3 = sE2.Split("/")
-                    'Dim sE4 = sE3(2).Replace("20", "")
-                    'Dim seasonEnd = sE3(0) + "/" + sE3(1) + "/" + sE4
-
 
                     Dim sT1 As New ScheduleThread
 
@@ -113,43 +104,6 @@ Class MainWindow
                     scheduleScrapeThread.IsBackground = True
                     scheduleScrapeThread.Start()
 
-
-
-
-
-
-                    'Dim sportScheduleFileList = XDocument.Load("ScheduleFileList" + sport + ".xml")
-
-                    'Dim querySportScheduleFileList = (From qSSFL In sportScheduleFileList.Descendants("schedulefiles").Descendants("filepath")).ToList
-                    'Dim cnt = 1
-                    'For Each file1 In querySportScheduleFileList
-
-                    'Dim queryMLBScheduleList = XDocument.Load(file1.Value)
-
-                    'Dim queryScheduledGame = (From qMLBS1 In queryMLBScheduleList.Descendants("TimeP").Descendants("game")
-                    'Select New MLBScheduledGame With {.GameId = qMLBS1.Attribute("gameNumber").Value,
-                    '.HomeTeam = qMLBS1.Elements("homeTeam").Value,
-                    '.AwayTeam = qMLBS1.Elements("awayTeam").Value,
-                    '.StartDate = qMLBS1.Elements("startDate").Value,
-                    '.StartTime = qMLBS1.Elements("startTime").Value}).ToList
-
-                    'For Each game1 In queryScheduledGame
-
-                    'mlbScheduledGame1 As New MLBScheduledGame
-
-                    'mlbScheduledGame1.GameId = game1.GameId
-                    'mlbScheduledGame1.HomeTeam = game1.HomeTeam
-                    'mlbScheduledGame1.AwayTeam = game1.AwayTeam
-                    'mlbScheduledGame1.StartDate = game1.StartDate
-                    'mlbScheduledGame1.StartTime = game1.StartTime
-                    'mlbScheduledGame1.Sport = sport
-
-                    ' _dbPools.MLBScheduledGames.Add(mlbScheduledGame1)
-
-                    'Next
-                    'cnt = cnt + 1
-                    '_dbPools.SaveChanges()
-                    'Next
                 End Using
             End Using
 
@@ -261,13 +215,33 @@ Class MainWindow
 
                     _dbLoserPool4.SaveChanges()
 
-                    Dim queryTotalMLBSchedule = (From game1 In _dbPools4.MLBScheduledGames).ToList
+                    Dim queryTotalSchedule = (From game1 In _dbPools4.ScheduledGames
+                             Where game1.CronJob = cronJobName).ToList
 
-                    If queryTotalMLBSchedule.Count > 0 Then
-                        For Each game1 In queryTotalMLBSchedule
-                            _dbPools4.MLBScheduledGames.Remove(game1)
+                    If queryTotalSchedule.Count > 0 Then
+                        For Each game1 In queryTotalSchedule
+                            _dbPools4.ScheduledGames.Remove(game1)
                         Next
                     End If
+
+
+                    'Dim queryTotalMLBSchedule = (From game1 In _dbPools4.MLBScheduledGames
+                    'Where game1.CronJob = cronJobName).ToList
+
+                    'If queryTotalMLBSchedule.Count > 0 Then
+                    'For Each game1 In queryTotalMLBSchedule
+                    '_dbPools4.MLBScheduledGames.Remove(game1)
+                    'Next
+                    'End If
+
+                    'Dim queryTotalNLFSchedule = (From game1 In _dbPools4.NFLScheduledGames
+                    '                                Where game1.CronJob = cronJobName).ToList
+
+                    'If queryTotalNLFSchedule.Count > 0 Then
+                    'For Each game1 In queryTotalNLFSchedule
+                    '_dbPools4.NFLScheduledGames.Remove(game1)
+                    'Next
+                    'End If
 
                     _dbPools4.SaveChanges()
 
@@ -278,10 +252,6 @@ Class MainWindow
         End Try
 
     End Sub
-
-
-
-
 
 End Class
 
@@ -310,134 +280,193 @@ Public Class ScheduleThread
 
                     System.IO.Directory.SetCurrentDirectory(queryParameters.scheduleCronJobFolder)
 
+                    If sport = "baseball" Then
+                        sport1 = "mlb"
+                        Dim pythonScrape = "MLBScheduleScrape1.py"
 
-                    While Me.scheduleScrapeEndDate >= Me.scheduleScrapeDate
+                        While Me.scheduleScrapeEndDate >= Me.scheduleScrapeDate
+                            Dim scheduleDate = scheduleScrapeDate.ToString("MM/dd/yy")
 
-                        Dim scheduleDate = scheduleScrapeDate.ToString("MM/dd/yy")
+                            ScheduleScrape(sport, sport1, pythonScrape, scheduleDate, cronJobName, filename, scrapedFilesFolder)
 
-                        File.Delete(".\ScrapedFiles\" + filename)
-                        Thread.Sleep(2000)
-                        File.AppendAllText(".\ScrapedFiles\" + filename, "C:\python27\python " + ".\ScrapedFiles\MLBScheduleScrape1.py" + _
-                                           " " + "mlb" + " " + sport + " " + scheduleDate + " " + scrapedFilesFolder)
+                            Me.scheduleScrapeDate = Me.scheduleScrapeDate.AddDays(1)
 
-                        Dim cnt = 1
+                            Thread.Sleep(2000)
+
+                        End While
+
+                    ElseIf sport = "football" Then
+
+                        sport1 = "nfl"
+
+                        Dim queryCronJobs = (From qCJ In _dbApp1.CronJobs
+                                             Where qCJ.CronJobName = cronJobName).Single
+
+                        Dim pythonScrape = ""
+                        If queryCronJobs.CronJobIsPreseason = False Then
+                            pythonScrape = "NFLSchedulescrape1.py"
+
+                            For weekNum = 1 To 17
+                                ScheduleScrape(sport, sport1, pythonScrape, CStr(weekNum), cronJobName, filename, scrapedFilesFolder)
+                                Thread.Sleep(2000)
+                            Next
+                        Else
+                            pythonScrape = "NFLSchedulescrapePreseason.py"
+                            For weekNum = 2 To 5
+                                ScheduleScrape(sport, sport1, pythonScrape, CStr(weekNum), cronJobName, filename, scrapedFilesFolder)
+                                Thread.Sleep(2000)
+                            Next
+
+                        End If
+
+
+
+                    End If
+
+                End Using
+            End Using
+        Catch ex As Exception
+
+        End Try
+    End Sub
+
+    Private Shared Sub ScheduleScrape(sport As String, league As String, pythonScrape As String, timePeriodParameter As String, cronJobName As String, filename As String, scrapedFilesFolder As String)
+
+        Dim _dbApp2 As New ApplicationDbContext
+        Dim _dbPools2 As New PoolDbContext
+
+        Try
+            Using (_dbApp2)
+                Using (_dbPools2)
+                    File.Delete(".\ScrapedFiles\" + filename)
+                    Thread.Sleep(2000)
+                    File.AppendAllText(".\ScrapedFiles\" + filename, "C:\python27\python " + " " + ".\ScrapedFiles\" + pythonScrape + _
+                                       " " + league + " " + sport + " " + timePeriodParameter + " " + scrapedFilesFolder)
+
+                    Dim cnt = 1
 RestartScrape:
-                        Dim mySchedule As New XDocument
-                        Dim filename1 As String
+                    Dim mySchedule As New XDocument
+                    Dim filename1 As String
+                    Try
+                        Dim myProcess As Process
+                        myProcess = Process.Start(".\ScrapedFiles\" + filename)
+
+                        While Not myProcess.HasExited
+                            'myProcess.Refresh()
+                            Thread.Sleep(100)
+                            Dim dummy = "dummy"
+                        End While
+
+                        filename1 = ".\ScrapedFiles\" + "schedule" + sport + ".xml"
+
                         Try
-                            Dim myProcess As Process
-                            myProcess = Process.Start(".\ScrapedFiles\" + filename)
+                            mySchedule = XDocument.Load(filename1)
 
-                            While Not myProcess.HasExited
-                                'myProcess.Refresh()
-                                Thread.Sleep(100)
-                                Dim dummy = "dummy"
-                            End While
-
-                            filename1 = ".\ScrapedFiles\" + "schedule" + sport + ".xml"
-
-                            Try
-                                mySchedule = XDocument.Load(filename1)
-
-                            Catch ex As Exception
-
-                                If cnt > 1 Then
-                                    Exit Sub
-                                End If
-                                cnt += 1
-                                Thread.Sleep(10000)
-                                GoTo RestartScrape
-
-                            End Try
                         Catch ex As Exception
 
                             If cnt > 1 Then
                                 Exit Sub
                             End If
                             cnt += 1
+                            Thread.Sleep(10000)
                             GoTo RestartScrape
 
                         End Try
+                    Catch ex As Exception
+
+                        If cnt > 1 Then
+                            Exit Sub
+                        End If
+                        cnt += 1
+                        GoTo RestartScrape
+
+                    End Try
+
+                    Dim queryGame = (From game In mySchedule.Descendants("score").Descendants("game")
+                                Select New ScheduledGame With {.HomeTeam = game.Attribute("hometeam").Value,
+                                .AwayTeam = game.Attribute("awayteam").Value,
+                                .GameCode = game.Attribute("gamecode").Value,
+                                .HomeScore = game.Element("homescore").Value,
+                                .AwayScore = game.Element("awayscore").Value,
+                                .GameDate = game.Element("gamedate").Value,
+                                .GameTime = game.Element("gametime").Value,
+                                .Status = game.Element("status").Value,
+                                .DisplayStatus1 = game.Element("display_status1").Value,
+                                .DisplayStatus2 = game.Element("display_status2").Value}).ToList
 
 
-                        Dim queryGame = (From game In mySchedule.Descendants("score").Descendants("game")
-                                 Select New MLBScheduledGame With {.HomeTeam = game.Attribute("hometeam").Value,
-                                                                   .AwayTeam = game.Attribute("awayteam").Value,
-                                                                   .GameCode = game.Attribute("gamecode").Value,
-                                                                   .HomeScore = game.Element("homescore").Value,
-                                                                   .AwayScore = game.Element("awayscore").Value,
-                                                                   .GameDate = game.Element("gamedate").Value,
-                                                                   .GameTime = game.Element("gametime").Value,
-                                                                   .Status = game.Element("status").Value,
-                                                                   .DisplayStatus1 = game.Element("display_status1").Value,
-                                                                   .DisplayStatus2 = game.Element("display_status2").Value}).ToList
+                    For Each game In queryGame
+                        game.HomeTeam = game.HomeTeam
+                        game.AwayTeam = game.AwayTeam
+                        game.GameDate = game.GameDate
+                        game.StartDate = game.GameDate
+                        game.OriginalStartDate = game.GameDate
+                        game.StartTime = game.GameTime
+                        game.OriginalStartTime = game.GameTime
+                        Try
+                            game.StartDateTime = DateTime.Parse(game.GameDate + " " + game.GameTime)
+                        Catch ex As Exception
+                            game.StartDateTime = DateTime.Parse(game.GameDate + " " + "9:00 AM")
+                        End Try
 
-                        For Each game In queryGame
-                            game.HomeTeam = game.HomeTeam
-                            game.AwayTeam = game.AwayTeam
-                            game.GameDate = game.GameDate
-                            game.StartDate = game.GameDate
-                            game.OriginalStartDate = game.GameDate
-                            game.StartTime = game.GameTime
-                            game.OriginalStartTime = game.GameTime
-                            Try
-                                game.StartDateTime = DateTime.Parse(game.GameDate + " " + game.GameTime)
-                            Catch ex As Exception
-                                game.StartDateTime = DateTime.Parse(game.GameDate + " " + "9:00 AM")
-                            End Try
+                        game.CronJob = cronJobName
+                    Next
 
-                            game.CronJob = cronJobName
-                        Next
+                    _dbPools2.SaveChanges()
 
-                        _dbPools1.SaveChanges()
+                    Dim queryCronJobs = (From qCJ In _dbApp2.CronJobs
+                                        Where qCJ.CronJobName = cronJobName).Single
 
-                        Dim queryGame1 = (From game In queryGame
-                                          Order By game.StartDateTime)
+                    Dim queryGame1 = (From game In queryGame
+                                      Order By game.StartDateTime).ToList
 
-                        Dim cnt1 = 1
+                    Dim cnt1 = 1
 
-                        For Each game In queryGame1
+                    For Each game In queryGame1
 
-                            If game.Status = "Pre-Game" Then
-                                game.GameId = "game" + CStr(cnt1)
-                                cnt1 += 1
-                                _dbPools1.MLBScheduledGames.Add(game)
+                        If game.Status = "Pre-Game" Then
+                            game.GameId = "game" + CStr(cnt1)
+                            game.Sport = sport
+                            If queryCronJobs.CronJobIsPreseason = False Then
+                                game.IsPreseason = False
+                            Else
+                                game.IsPreseason = True
                             End If
-                        Next
 
-                        _dbPools1.SaveChanges()
+                            cnt1 += 1
+                            _dbPools2.ScheduledGames.Add(game)
+                        End If
+                    Next
 
-                        For Each game In queryGame1
-                            Dim queryMultipleGames = (From game1 In queryGame Where game1.HomeTeam = game.HomeTeam And _
-                            game1.AwayTeam = game1.AwayTeam).ToList
+                    _dbPools2.SaveChanges()
 
-                            If queryMultipleGames.Count = 1 Then
-                                game.MultipleGamesAreScheduled = False
-                                _dbPools1.SaveChanges()
-                            ElseIf queryMultipleGames.Count > 1 Then
-                                If game.MultipleGamesAreScheduled = False Then
-                                    Dim cnt2 = 1
-                                    For Each game1 In queryMultipleGames
-                                        game1.MultipleGamesAreScheduled = True
-                                        game1.MultipleGameNumber = CStr(cnt2)
-                                        cnt2 += 1
-                                        _dbPools1.SaveChanges()
-                                    Next
-                                End If
+                    For Each game In queryGame1
+                        Dim queryMultipleGames = (From game1 In queryGame Where game1.HomeTeam = game.HomeTeam And _
+                        game1.AwayTeam = game1.AwayTeam).ToList
+
+                        If queryMultipleGames.Count = 1 Then
+                            game.MultipleGamesAreScheduled = False
+                            _dbPools2.SaveChanges()
+                        ElseIf queryMultipleGames.Count > 1 Then
+                            If game.MultipleGamesAreScheduled = False Then
+                                Dim cnt2 = 1
+                                For Each game1 In queryMultipleGames
+                                    game1.MultipleGamesAreScheduled = True
+                                    game1.MultipleGameNumber = CStr(cnt2)
+                                    cnt2 += 1
+                                    _dbPools2.SaveChanges()
+                                Next
                             End If
-                        Next
+                        End If
+                    Next
 
-                        Me.scheduleScrapeDate = Me.scheduleScrapeDate.AddDays(1)
-                        File.Delete(filename1)
-                        Thread.Sleep(2000)
-                    End While
+                    File.Delete(filename1)
+
                 End Using
             End Using
         Catch ex As Exception
 
         End Try
-
-
     End Sub
 End Class
 

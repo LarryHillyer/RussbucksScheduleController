@@ -35,6 +35,7 @@ Namespace LosersPool.Models
         Public Property WinningTeam As String
         Public Property IsHomeTeamWinning As Boolean
         Public Property AreTeamsTied As Boolean
+        Public Property seasonPhase As String
 
     End Class
 
@@ -67,6 +68,7 @@ Namespace LosersPool.Models
         Public Property WinningTeam As String
         Public Property IsHomeTeamWinning As Boolean
         Public Property AreTeamsTied As Boolean
+        Public Property seasonPhase As String
 
     End Class
 
